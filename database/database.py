@@ -4,10 +4,10 @@ import mysql.connector
 def create_connection():
     try:
         connection = mysql.connector.connect(
-            host='localhost',  # Хост базы данных
+            host='stilbon.mysql.pythonanywhere-services.com',  # Хост базы данных
             database='bot',  # Имя базы данных
-            user='root',  # Имя пользователя
-            password='1234'  # Пароль
+            user='stilbon',  # Имя пользователя
+            password='bmw330mm'  # Пароль
         )
         return connection
     except Exception as e:
