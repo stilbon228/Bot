@@ -15,17 +15,26 @@ import os  # Модуль для работы с операционной сис
 
 from buttons.buttons import get_main_keyboard, get_location_keyboard, \
     get_review_keyboard  # Импортируем функцию для создания клавиатуры
+from lexicon import LEXICON_RU
 
 router = Router()  # Создаем экземпляр маршрутизатора
+
+
+# Класс состояний для построения маршрута
+class RouteStates(StatesGroup):
+    waiting_for_route = State()  # Ожидание ввода адресов для маршрута
+
+
+# Обработчик команды /start
 @router.message(Command("start"))
 async def start_command(message: Message):
     await message.answer(
-        "👋 Привет! Выбери действие на клавиатуре.",
+        LEXICON_RU["/start"],
         reply_markup=get_main_keyboard()
     )
 
-class RouteStates(StatesGroup):
-    waiting_for_route = State()  # Ожидание ввода адресов для маршрута
+
+# Обработчик команды /review
 @router.message(Command(commands='review'))
 async def review_command(message: Message):
     """
@@ -34,11 +43,12 @@ async def review_command(message: Message):
     :param message: Сообщение от пользователя.
     """
     await message.answer(
-        "Как вы оцениваете работу бота?",
+        LEXICON_RU["/review"],
         reply_markup=get_review_keyboard()  # Отправляем клавиатуру с вариантами ответа
     )
 
 
+# Обработчик положительного отзыва
 @router.message(F.text == "👍 Отлично")
 async def review_positive(message: Message):
     """
@@ -46,9 +56,10 @@ async def review_positive(message: Message):
 
     :param message: Сообщение от пользователя.
     """
-    await message.answer("Спасибо за ваш положительный отзыв! 😊")
+    await message.answer(LEXICON_RU["review_positive"])
 
 
+# Обработчик отрицательного отзыва
 @router.message(F.text == "👎 Плохо")
 async def review_negative(message: Message):
     """
@@ -56,9 +67,10 @@ async def review_negative(message: Message):
 
     :param message: Сообщение от пользователя.
     """
-    await message.answer("Сожалеем, что вам не понравилось. Мы будем работать над улучшением! 😔")
+    await message.answer(LEXICON_RU["review_negative"])
 
 
+# Обработчик кнопки "Назад" из опроса
 @router.message(F.text == "Назад")
 async def go_back_from_review(message: Message):
     """
@@ -66,54 +78,50 @@ async def go_back_from_review(message: Message):
 
     :param message: Сообщение от пользователя.
     """
+    # Проверяем текущее состояние, чтобы определить, откуда возвращается пользователь
+
     await message.answer(
-        "Возврат в главное меню.",
+        LEXICON_RU["go_back"],
         reply_markup=get_main_keyboard()  # Возвращаем главную клавиатуру
     )
 
+
+# Обработчик кнопки "Построить маршрут"
 @router.message(F.text == "🗺️ Построить маршрут")
 async def route_menu(message: Message, state: FSMContext):
     await message.answer(
-        "Введите адрес отправления и прибытия через стрелку ->.\n"
-        "Например: Москва, Ленина 10 -> Пушкина 5, Москва"
+        LEXICON_RU["route_menu"]
     )
     await state.set_state(RouteStates.waiting_for_route)  # Устанавливаем состояние ожидания маршрута
 
-@router.message(F.text == "Назад")
-async def go_back(message: Message):
 
-    await message.answer(
-        "Возврат в главное меню.",
-        reply_markup=get_main_keyboard()
-    )
-
-
+# Обработчик команды /help (или кнопки "Помощь")
 @router.message(F.text == "Помощь")
+@router.message(Command("help"))
 async def help_command(message: Message):
     await message.answer(
-        "🤖 Бот для работы с картами и маршрутами\n\n"
-        "Возможности:\n"
-        "- Построение маршрутов\n"
-        "- Определение геолокации\n"
-        "- Быстрый доступ к функциям через кнопки",
+        LEXICON_RU["/help"],
         reply_markup=get_main_keyboard()
     )
-@router.message(F.text == "Мое местоположение")
+
+
+# Обработчик кнопки "Мое местоположение"
+@router.message(F.text == "📍 Мое местоположение")
 async def request_location(message: Message):
     await message.answer(
-        "Пожалуйста, отправьте ваше местоположение.",
+        LEXICON_RU["request_location"],
         reply_markup=get_location_keyboard()
     )
 
+
+# Обработчик получения геолокации
 @router.message(F.location)
 async def handle_location(message: Message):
     location = message.location
 
     if location:
         response_message = (
-            f"Ваше местоположение:\n"
-            f"Широта: {location.latitude}\n"
-            f"Долгота: {location.longitude}"
+            LEXICON_RU["handle_location"].format(latitude=location.latitude, longitude=location.longitude)
         )
 
         await message.answer(
@@ -122,9 +130,12 @@ async def handle_location(message: Message):
         )
     else:
         await message.answer(
-            "Не удалось определить местоположение.",
+            LEXICON_RU["handle_location_error"],
             reply_markup=get_main_keyboard()
         )
+
+
+# Функция для получения координат по адресу
 def get_coordinates(api_key: str, address: str) -> tuple[float, float]:
     """
     Получить координаты по адресу с использованием Yandex Geocoder API.
@@ -158,6 +169,7 @@ def get_coordinates(api_key: str, address: str) -> tuple[float, float]:
         raise Exception(f"Ошибка при запросе Geocoder API: {response.status_code}")  # Обработка ошибок
 
 
+# Функция для парсинга маршрута и сохранения в GPX-файл
 def parse_route(url: str) -> str:
     """
     Парсит маршрут по URL и сохраняет его в GPX-файл.
@@ -225,44 +237,46 @@ def parse_route(url: str) -> str:
         driver.quit()  # Закрытие драйвера
 
 
-
+# Обработчик запроса на построение маршрута
 @router.message(RouteStates.waiting_for_route)
 async def process_route_request(message: Message, state: FSMContext, config):
+    try:
+        if "->" not in message.text:
+            await message.reply(LEXICON_RU["invalid_format"])
+            return
 
-   try:
-       if "->" not in message.text:
-           return
+        origin, destination = map(str.strip, message.text.split("->"))
 
-       origin, destination = map(str.strip, message.text.split("->"))
+        origin_coords = get_coordinates(config.yandex.api_key, origin)
+        destination_coords = get_coordinates(config.yandex.api_key, destination)
 
-       origin_coords = get_coordinates(config.yandex.api_key, origin)
-       destination_coords = get_coordinates(config.yandex.api_key, destination)
+        if not origin_coords[0] or not destination_coords[0]:
+            await message.reply(LEXICON_RU["address_not_found"])
+            return
 
-       if not origin_coords[0] or not destination_coords[0]:
-           await message.reply("Не удалось найти один из адресов. Проверьте правильность написания.")
-           return
+        route_url_1 = (
+            f"https://yandex.ru/maps/?ll={origin_coords[1]},{origin_coords[0]}&mode=routes&rtext={origin_coords[0]},{origin_coords[1]}~{destination_coords[0]},{destination_coords[1]}=pd&ruri=~&z=16"
+        )
 
-       route_url_1 = (
-           f"https://yandex.ru/maps/?ll={origin_coords[1]},{origin_coords[0]}&mode=routes&rtext={origin_coords[0]},{origin_coords[1]}~{destination_coords[0]},{destination_coords[1]}=pd&ruri=~&z=16"
-       )
+        gpx_file_path = parse_route(route_url_1)
+        with open(gpx_file_path, 'r') as file:
+            gpx_data = file.read()
 
-       gpx_file_path = parse_route(route_url_1)
-       insert_user_route(message.from_user.id, f"{origin} -> {destination}")
+        insert_user_route(message.from_user.id, f"{origin} -> {destination}", gpx_data)
 
-       await message.reply_document(FSInputFile(gpx_file_path), caption="Вот ваш GPX файл маршрута.")
+        await message.reply_document(FSInputFile(gpx_file_path), caption=LEXICON_RU["gpx_caption"])
 
-       response_message = (
-           f"Начальный адрес: {origin}\n"
-           f"Координаты: {origin_coords[0]}, {origin_coords[1]}\n\n"
-           f"Конечный адрес: {destination}\n"
-           f"Координаты: {destination_coords[0]}, {destination_coords[1]}\n\n"
-           f"Ссылка на маршрут: {route_url_1}\n"
-       )
+        response_message = (
+            LEXICON_RU["route_info"].format(origin=origin, origin_coords_0=origin_coords[0],
+                                            origin_coords_1=origin_coords[1], destination=destination,
+                                            destination_coords_0=destination_coords[0],
+                                            destination_coords_1=destination_coords[1], route_url_1=route_url_1)
+        )
 
-       os.remove(gpx_file_path)
-       await state.clear()
+        os.remove(gpx_file_path)
+        await state.clear()
 
-       await message.reply(response_message)
+        await message.reply(response_message)
 
-   except Exception as e:
-       await message.reply(f"Произошла ошибка: {e}")
+    except Exception as e:
+        await message.reply(LEXICON_RU["error"].format(e=e))
