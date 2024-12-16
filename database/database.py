@@ -5,7 +5,7 @@ def create_connection():
     try:
         connection = mysql.connector.connect(
             host='stilbon.mysql.pythonanywhere-services.com',  # Хост базы данных
-            database='bot',  # Имя базы данных
+            database='stilbon$bot',  # Имя базы данных
             user='stilbon',  # Имя пользователя
             password='bmw330mm'  # Пароль
         )
