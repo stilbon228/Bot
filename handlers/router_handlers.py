@@ -179,7 +179,7 @@ def parse_route(url: str) -> str:
     try:
         driver.get(url)  # Переход по указанному URL
 
-        time.sleep(5)  # Ожидание загрузки страницы (можно заменить на WebDriverWait)
+        time.sleep(5)  # Ожидание загрузки страницы
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')  # Парсинг HTML-кода страницы с помощью BeautifulSoup
 
