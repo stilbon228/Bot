@@ -7,9 +7,9 @@ from middle.middleware import ConfigMiddleware  # Import middleware for configur
 
 # Загрузка конфигурации из .env файла
 config = load_config()
-
+session = AiohttpSession(proxy="http://proxy.server:3128")
 # Инициализация бота с токеном из конфигурации и создание диспетчера
-bot = Bot(token=config.tg_bot.token)
+bot = Bot(token=config.tg_bot.token, session=session)
 dp = Dispatcher()
 
 
