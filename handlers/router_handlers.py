@@ -95,7 +95,7 @@ def get_coordinates(api_key: str, address: str) -> tuple[float, float]:
     return (None, None)
 
 
-def parse_route(url: str) -> str:
+def parse_route(url: str, mode: str) -> str:
     ua = UserAgent()
     user_agent = ua.random
     options = webdriver.ChromeOptions()
@@ -135,7 +135,7 @@ def parse_route(url: str) -> str:
                     ET.SubElement(trkpt, "time").text = "2023-10-01T00:00:00Z"
 
                 gpx_data = ET.tostring(gpx, encoding='utf-8', method='xml')
-                gpx_file_path = f"route_{int(time.time())}.gpx"
+                gpx_file_path = f"{mode}.gpx"  # Изменено имя файла
 
                 with open(gpx_file_path, "wb") as gpx_file:
                     gpx_file.write(gpx_data)
@@ -166,7 +166,15 @@ async def process_route_request(message: Message, state: FSMContext, config):
             "auto": "rtt=auto",
             "pedestrian": "rtt=pd",
             "scooter": "rtt=sc",
-            "motorcycle": "rtt=bc"
+            "motorcycle": "rtt=bc"  # Исправлено
+        }
+
+        # Добавлено соответствие для корректных названий файлов
+        mode_names = {
+            "auto": "auto",
+            "pedestrian": "pedestrian",
+            "scooter": "scooter",
+            "motorcycle": "motorcycle"
         }
 
         gpx_files = []
@@ -176,7 +184,7 @@ async def process_route_request(message: Message, state: FSMContext, config):
                 f"https://yandex.ru/maps/?ll={origin_coords[1]},{origin_coords[0]}"
                 f"&mode=routes&rtext={origin_coords[0]},{origin_coords[1]}~{destination_coords[0]},{destination_coords[1]}&{rtt}&ruri=~&z=16"
             )
-            gpx_file_path = parse_route(route_url)
+            gpx_file_path = parse_route(route_url, mode_names[mode])  # Передаем корректное имя файла
             if gpx_file_path:
                 gpx_files.append((mode, gpx_file_path))
 
