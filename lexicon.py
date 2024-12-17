@@ -22,7 +22,6 @@ LEXICON_RU = {
     "route_info": "Начальный адрес: {origin}\n"
                   "Координаты: {origin_coords_0}, {origin_coords_1}\n\n"
                   "Конечный адрес: {destination}\n"
-                  "Координаты: {destination_coords_0}, {destination_coords_1}\n\n"
-                  "Ссылка на маршрут: {route_url_1}\n",
+                  "Координаты: {destination_coords_0}, {destination_coords_1}\n\n",
     "error": "Произошла ошибка: {e}"
 }
