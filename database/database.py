@@ -24,8 +24,7 @@ def create_table():
                 CREATE TABLE IF NOT EXISTS user_routes (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     user_id BIGINT NOT NULL,
-                    route TEXT NOT NULL,
-                    gpx_data LONGTEXT NOT NULL
+                    route TEXT NOT NULL
                 )
                 '''
             )
