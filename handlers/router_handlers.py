@@ -185,9 +185,9 @@ async def process_route_request(message: Message, state: FSMContext, config):
                 f"https://yandex.ru/maps/?ll={origin_coords[1]},{origin_coords[0]}"
                 f"&mode=routes&rtext={origin_coords[0]},{origin_coords[1]}~{destination_coords[0]},{destination_coords[1]}&{rtt}&ruri=~&z=16"
             )
-            insert_user_route(message.from_user.id, f"{origin} -> {destination}")
             gpx_file_path = parse_route(route_url, mode_names[mode])  # Передаем корректное имя файла
             if gpx_file_path:
+                insert_user_route(message.from_user.id, f"{origin} -> {destination}", gpx_file_path)
                 gpx_files.append((mode, gpx_file_path))
 
         for mode, gpx_file_path in gpx_files:

@@ -24,7 +24,8 @@ def create_table():
                 CREATE TABLE IF NOT EXISTS user_routes (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     user_id BIGINT NOT NULL,
-                    route TEXT NOT NULL
+                    route TEXT NOT NULL,
+                    gpx_data LONGTEXT NOT NULL
                 )
                 '''
             )
@@ -39,9 +40,9 @@ def insert_user_route(user_id: int, route: str, gpx_data: str):
         with connection.cursor() as cursor:
             cursor.execute(
                 '''
-                INSERT INTO user_routes (user_id, route)
+                INSERT INTO user_routes (user_id, route, gpx_data)
                 VALUES (%s, %s, %s)
-                ''', (user_id, route)
+                ''', (user_id, route, gpx_data)
             )
         connection.commit()
     except Exception as e:
