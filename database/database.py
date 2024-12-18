@@ -40,9 +40,9 @@ def insert_user_route(user_id: int, route: str, gpx_data: str):
         with connection.cursor() as cursor:
             cursor.execute(
                 '''
-                INSERT INTO user_routes (user_id, route, gpx_data)
+                INSERT INTO user_routes (user_id, route)
                 VALUES (%s, %s, %s)
-                ''', (user_id, route, gpx_data)
+                ''', (user_id, route)
             )
         connection.commit()
     except Exception as e:
